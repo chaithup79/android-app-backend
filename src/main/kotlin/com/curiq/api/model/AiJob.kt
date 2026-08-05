@@ -17,7 +17,7 @@ data class AiJob(
     val correlationId: String = "",
 
     @Enumerated(EnumType.STRING)
-    var status: JobStatus = JobStatus.QUEUED,
+    var status: LegacyJobStatus = LegacyJobStatus.QUEUED,
 
     var retryCount: Int = 0,
     
@@ -39,6 +39,6 @@ data class AiJob(
     var error: String? = null
 )
 
-enum class JobStatus {
+enum class LegacyJobStatus {
     QUEUED, PROCESSING, COMPLETED, FAILED
 }

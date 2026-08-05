@@ -1,0 +1,7 @@
+ALTER TABLE saved_items
+ADD COLUMN title TEXT,
+ADD COLUMN ai_summary TEXT,
+ADD COLUMN ai_category VARCHAR(100),
+ADD COLUMN ai_confidence SMALLINT,
+ADD COLUMN ai_status VARCHAR(30) DEFAULT 'PENDING' NOT NULL,
+ADD COLUMN ai_metadata JSONB;

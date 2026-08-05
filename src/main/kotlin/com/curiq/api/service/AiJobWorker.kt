@@ -44,7 +44,7 @@ class AiJobWorker(
             
             Based on this information, provide a JSON response with the following exact fields:
             - "ai_summary": A high-quality, concise 2-3 sentence summary.
-            - "ai_category": A broad category (e.g., Programming, Finance, Entertainment).
+            - "ai_category": A highly specific, accurate category (e.g. AI Tools, Web Development, Healthy Recipes). Do NOT use generic terms like 'Entertainment' or 'Other' unless absolutely necessary. If a Category is already provided above and is not 'Unknown', you should generally respect it or refine it into something better.
             - "ai_confidence": A number from 0-100 indicating how confident you are in this analysis.
             - "tags": A JSON array of 3-5 specific keyword tags.
             - "readingTime": Estimated reading time in minutes (number).
@@ -59,6 +59,10 @@ class AiJobWorker(
             item.aiSummary = aiData.ai_summary
             item.aiCategory = aiData.ai_category
             item.aiConfidence = aiData.ai_confidence
+            
+            if (item.category.isNullOrBlank()) {
+                item.category = aiData.ai_category
+            }
             
             val aiMetadataMap = mutableMapOf<String, Any>()
             aiData.tags?.let { aiMetadataMap["tags"] = it }

@@ -20,14 +20,20 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("com.google.firebase:firebase-admin:9.2.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     
     // WebClient for calling Ollama
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    
+    // HTML Parsing
+    implementation("org.jsoup:jsoup:1.17.2")
 
     // Database & Queue
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.flywaydb:flyway-core")
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     

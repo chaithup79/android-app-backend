@@ -3,16 +3,18 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: curiq
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: curiqdb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U curiq -d curiqdb"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d curiqdb"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -46,14 +48,15 @@ services:
     build: .
     ports:
       - "8088:8088"
+    env_file:
+      - .env
     environment:
       - SPRING_PROFILES_ACTIVE=api
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/curiqdb
-      - SPRING_DATASOURCE_USERNAME=curiq
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - /opt/curiq/secrets:/opt/curiq/secrets:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,14 +65,15 @@ services:
 
   worker:
     build: .
+    env_file:
+      - .env
     environment:
       - SPRING_PROFILES_ACTIVE=worker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/curiqdb
-      - SPRING_DATASOURCE_USERNAME=curiq
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_DATA_REDIS_HOST=redis
-      - SPRING_DATA_REDIS_PORT=6379
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - /opt/curiq/secrets:/opt/curiq/secrets:ro
     depends_on:
       postgres:
         condition: service_healthy

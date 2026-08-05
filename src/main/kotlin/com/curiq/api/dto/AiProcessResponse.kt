@@ -1,8 +1,10 @@
 package com.curiq.api.dto
 
 data class AiProcessResponse(
-    val summary: String,
-    val category: String,
-    val subcategory: String,
-    val tags: List<String>
+    val ai_summary: String,
+    val ai_category: String,
+    val ai_confidence: Short?,
+    val tags: List<String>?,
+    val readingTime: Int?,
+    val difficulty: String?
 )

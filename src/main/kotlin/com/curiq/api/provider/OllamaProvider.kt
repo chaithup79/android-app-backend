@@ -39,10 +39,12 @@ class OllamaProvider(
         } catch (e: Exception) {
             // Fallback if AI fails to return valid JSON
             AiProcessResponse(
-                summary = "Failed to parse summary.",
-                category = "Other",
-                subcategory = "",
-                tags = emptyList()
+                ai_summary = "Failed to parse summary.",
+                ai_category = "Other",
+                ai_confidence = 0,
+                tags = emptyList(),
+                readingTime = null,
+                difficulty = null
             )
         }
     }

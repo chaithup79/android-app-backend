@@ -1,0 +1,3 @@
+ALTER TABLE saved_items
+ADD COLUMN url_hash VARCHAR(64),
+ADD COLUMN notes TEXT;
