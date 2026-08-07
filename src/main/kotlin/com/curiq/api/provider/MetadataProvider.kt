@@ -19,6 +19,8 @@ data class ExtractedMetadata(
     val category: String? = null,
     val sourceDomain: String? = null,
     val author: String? = null,
+    val authorUrl: String? = null,
+    val authorAvatar: String? = null,
     val title: String? = null,
     val videoUrl: String? = null,
     val tags: List<String>? = null

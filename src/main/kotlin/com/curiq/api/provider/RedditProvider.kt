@@ -62,7 +62,7 @@ class RedditProvider : SpecializedProvider {
                         
                         return ProviderResult(
                             providerName = "RedditProvider",
-                            confidence = 100,
+                            source = ProviderSource.REDDIT_API, confidence = 100,
                             metadata = metadata,
                             durationMs = System.currentTimeMillis() - startTime
                         )

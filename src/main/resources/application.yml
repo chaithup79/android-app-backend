@@ -22,5 +22,9 @@ spring:
 ai:
   provider: ollama
 
+curiq:
+  ai:
+    max-context-bookmarks: 7
+
 ollama:
   base-url: ${OLLAMA_URL:http://localhost:11434}

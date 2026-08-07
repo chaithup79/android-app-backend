@@ -36,21 +36,21 @@ class InstagramProvider(
         var result = microlinkProvider.extractMetadata(tempItem)
         if (isSufficient(result)) {
             logger.info("InstagramProvider succeeded using Microlink")
-            return result?.copy(providerName = "InstagramProvider (Microlink)", confidence = 95)
+            return result?.copy(providerName = "InstagramProvider (Microlink)", source = ProviderSource.MICROLINK, confidence = 95)
         }
 
         // 3. Try OpenGraph (Fallback)
         result = openGraphProvider.extractMetadata(tempItem)
         if (isSufficient(result)) {
             logger.info("InstagramProvider succeeded using OpenGraph")
-            return result?.copy(providerName = "InstagramProvider (OpenGraph)", confidence = 80)
+            return result?.copy(providerName = "InstagramProvider (OpenGraph)", source = ProviderSource.HTML, confidence = 80)
         }
 
         // 4. Try HTML (Last Resort)
         result = htmlProvider.extractMetadata(tempItem)
         if (isSufficient(result)) {
             logger.info("InstagramProvider succeeded using HTML")
-            return result?.copy(providerName = "InstagramProvider (HTML)", confidence = 70)
+            return result?.copy(providerName = "InstagramProvider (HTML)", source = ProviderSource.MICROLINK, confidence = 70)
         }
 
         // 5. Fallback
@@ -59,7 +59,7 @@ class InstagramProvider(
         
         return ProviderResult(
             providerName = "InstagramProvider (Fallback)",
-            confidence = 20,
+            source = ProviderSource.FALLBACK, confidence = 20,
             metadata = ExtractedMetadata(
                 category = categoryType,
                 sourceDomain = "instagram.com"

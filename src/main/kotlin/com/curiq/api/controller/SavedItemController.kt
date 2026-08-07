@@ -87,7 +87,7 @@ class SavedItemController(
         }
         
         // 2. Fetch server changes for client
-        val lastSyncTimestamp = request.syncToken?.toLongOrNull() ?: 0L
+        val lastSyncTimestamp = (request.syncToken?.toLongOrNull() ?: 0L) - 1000L
         val serverChanges = repository.findByUserIdAndUpdatedAtGreaterThan(userId, lastSyncTimestamp)
         
         val nextSyncToken = serverTime.toString()

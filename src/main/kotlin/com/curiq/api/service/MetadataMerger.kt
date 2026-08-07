@@ -39,12 +39,14 @@ class MetadataMerger {
         val sortedResults = results.sortedByDescending { it.confidence }
 
         for (result in sortedResults) {
-            val conf = result.confidence
             val meta = result.metadata
+            val conf = result.confidence
 
             if (meta.summary != null && conf > summaryConfidence) {
-                mergedSummary = meta.summary
-                summaryConfidence = conf
+                if (!meta.summary.contains("Enjoy the videos", ignoreCase = true)) {
+                    mergedSummary = meta.summary
+                    summaryConfidence = conf
+                }
             }
             if (meta.imageUrl != null && conf > imageConfidence) {
                 mergedImageUrl = meta.imageUrl

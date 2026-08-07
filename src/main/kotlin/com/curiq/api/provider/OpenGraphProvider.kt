@@ -61,7 +61,7 @@ class OpenGraphProvider : GenericProvider {
 
             ProviderResult(
                 providerName = "OpenGraphProvider",
-                confidence = 50,
+                source = ProviderSource.OPENGRAPH, confidence = 50,
                 metadata = metadata,
                 durationMs = System.currentTimeMillis() - startTime
             )

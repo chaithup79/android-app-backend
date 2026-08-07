@@ -21,50 +21,95 @@ class MetadataOrchestrator(
     private val sortedSpecializedProviders = specializedProviders.sortedBy { it.priority }
 
     fun processMetadata(item: SavedItem): SavedItem {
-        logger.info("Orchestrating metadata extraction for: ${item.url}")
+        val cleanUrl = normalizeUrl(item.url)
+        val normalizedItem = item.copy(url = cleanUrl)
         
+        logger.info("Orchestrating metadata extraction for: $cleanUrl (Original: ${item.url})")
+        
+        val results = mutableListOf<ProviderResult>()
+        var specializedSucceededWithoutSummary = false
+
         // 1. Check Specialized Providers first
         for (provider in sortedSpecializedProviders) {
-            if (provider.canHandle(item.url)) {
-                logger.info("Specialized Provider ${provider::class.simpleName} taking ownership of ${item.url}")
-                val result = provider.extractMetadata(item)
+            if (provider.canHandle(cleanUrl)) {
+                logger.info("Specialized Provider ${provider::class.simpleName} taking ownership of $cleanUrl")
+                var result = provider.extractMetadata(normalizedItem)
                 if (result != null) {
-                    item.summary = result.metadata.summary ?: item.summary
-                    item.imageUrl = result.metadata.imageUrl ?: item.imageUrl
-                    item.faviconUrl = result.metadata.faviconUrl ?: item.faviconUrl
-                    item.sourceDomain = result.metadata.sourceDomain ?: item.sourceDomain
+                    // Log metrics
+                    logger.info(
+                        "Provider Metrics -> Provider: ${result.providerName} | " +
+                        "Source: ${result.source?.name ?: "UNKNOWN"} | " +
+                        "Time: ${result.durationMs}ms | " +
+                        "Confidence: ${result.confidence}"
+                    )
                     
-                    // NEVER overwrite a user's manually chosen category with a scraped one
-                    if (item.category.isNullOrBlank()) {
-                        item.category = result.metadata.category
+                    // Check if YouTube gave us their generic useless description
+                    if (result.metadata.summary?.startsWith("Enjoy the videos", ignoreCase = true) == true) {
+                        result = result.copy(metadata = result.metadata.copy(summary = null))
                     }
                     
-                    return item
+                    results.add(result)
+                    
+                    if (!result.metadata.summary.isNullOrBlank()) {
+                        // We have a summary, we can stop here
+                        item.summary = result.metadata.summary ?: item.summary
+                        item.imageUrl = result.metadata.imageUrl ?: item.imageUrl
+                        item.faviconUrl = result.metadata.faviconUrl ?: item.faviconUrl
+                        item.sourceDomain = result.metadata.sourceDomain ?: item.sourceDomain
+                        item.author = result.metadata.author ?: item.author
+                        item.authorUrl = result.metadata.authorUrl ?: item.authorUrl
+                        item.authorAvatar = result.metadata.authorAvatar ?: item.authorAvatar
+                        item.url = cleanUrl // Save the normalized URL
+                        
+                        if (item.category.isNullOrBlank()) {
+                            item.category = result.metadata.category
+                        }
+                        return item
+                    } else {
+                        logger.info("Specialized Provider ${provider::class.simpleName} missing summary. Proceeding to generics to fill gaps.")
+                        specializedSucceededWithoutSummary = true
+                        break // Break to run generics
+                    }
                 } else {
-                    logger.warn("Specialized Provider ${provider::class.simpleName} failed for ${item.url}")
-                    return item // Do not fall back to generics if specialized took ownership
+                    logger.warn("Specialized Provider ${provider::class.simpleName} failed for $cleanUrl. Falling back to generics.")
+                    continue
                 }
             }
         }
         
         // 2. Generic Pipeline Fallback
-        logger.info("No specialized provider found, running generic pipeline")
-        val results = mutableListOf<ProviderResult>()
+        if (!specializedSucceededWithoutSummary) {
+            logger.info("No specialized provider found or fully succeeded, running generic pipeline")
+        }
         
-        for (provider in sortedGenericProviders) {
-            if (provider.canHandle(item.url)) {
-                logger.debug("Generic Provider ${provider::class.simpleName} is handling URL: ${item.url}")
-                val result = provider.extractMetadata(item)
+        val dynamicGenericProviders = genericProviders.sortedBy { provider ->
+            if (provider is com.curiq.api.provider.MicrolinkProvider && cleanUrl.contains("instagram.com")) {
+                0 // Microlink is first for Instagram
+            } else {
+                provider.priority
+            }
+        }
+        
+        for (provider in dynamicGenericProviders) {
+            if (provider.canHandle(cleanUrl)) {
+                logger.debug("Generic Provider ${provider::class.simpleName} is handling URL: $cleanUrl")
+                val result = provider.extractMetadata(normalizedItem)
                 
                 if (result != null) {
                     results.add(result)
-                    logger.info("Provider ${provider::class.simpleName} succeeded with confidence ${result.confidence}")
+                    logger.info(
+                        "Provider Metrics -> Provider: ${result.providerName} | " +
+                        "Source: ${result.source?.name ?: "UNKNOWN"} | " +
+                        "Time: ${result.durationMs}ms | " +
+                        "Confidence: ${result.confidence}"
+                    )
                 }
             }
         }
         
         if (results.isEmpty()) {
-            logger.warn("All generic metadata providers failed for URL: ${item.url}")
+            logger.warn("All generic metadata providers failed for URL: $cleanUrl")
+            item.url = cleanUrl
             return item
         }
 
@@ -75,12 +120,27 @@ class MetadataOrchestrator(
         item.imageUrl = finalMetadata.imageUrl ?: item.imageUrl
         item.faviconUrl = finalMetadata.faviconUrl ?: item.faviconUrl
         item.sourceDomain = finalMetadata.sourceDomain ?: item.sourceDomain
+        item.author = finalMetadata.author ?: item.author
+        item.authorUrl = finalMetadata.authorUrl ?: item.authorUrl
+        item.authorAvatar = finalMetadata.authorAvatar ?: item.authorAvatar
+        item.url = cleanUrl
         
         if (item.category.isNullOrBlank()) {
             item.category = finalMetadata.category
         }
         
         return item
+    }
+
+    private fun normalizeUrl(url: String): String {
+        var cleanUrl = url
+        val queryParamsToRemove = listOf("igsh", "utm_source", "fbclid", "feature", "si")
+        
+        for (param in queryParamsToRemove) {
+            cleanUrl = cleanUrl.substringBefore("?$param=")
+            cleanUrl = cleanUrl.substringBefore("&$param=")
+        }
+        return cleanUrl
     }
 
     // Temporary fallback for legacy AiJobExecutor

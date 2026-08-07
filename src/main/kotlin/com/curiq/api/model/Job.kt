@@ -23,7 +23,10 @@ data class Job(
     
     val createdAt: Long = System.currentTimeMillis(),
     
-    var updatedAt: Long = System.currentTimeMillis()
+    var updatedAt: Long = System.currentTimeMillis(),
+    
+    @Column(name = "next_retry_at")
+    var nextRetryAt: Long = 0
 )
 
 enum class JobType {
@@ -36,6 +39,5 @@ enum class JobStatus {
     PENDING,
     PROCESSING,
     COMPLETED,
-    FAILED,
-    RETRYING
+    FAILED
 }

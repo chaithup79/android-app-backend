@@ -42,7 +42,8 @@ class MicrolinkProvider : GenericProvider {
                         summary = data["description"] as? String,
                         imageUrl = imageObj?.get("url") as? String,
                         faviconUrl = logoObj?.get("url") as? String,
-                        sourceDomain = data["publisher"] as? String
+                        sourceDomain = data["publisher"] as? String,
+                        author = data["author"] as? String
                     )
 
                     return ProviderResult(

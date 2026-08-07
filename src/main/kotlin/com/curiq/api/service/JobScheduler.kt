@@ -24,7 +24,8 @@ class JobScheduler(
                 continue
             }
             
-            logger.info("Processing job: ${job.id} of type ${job.type}")
+            val startTime = System.currentTimeMillis()
+            logger.info("[${job.type}] Claimed Job ${job.id}")
             job.status = JobStatus.PROCESSING
             job.updatedAt = System.currentTimeMillis()
             
@@ -33,18 +34,21 @@ class JobScheduler(
                 if (worker != null) {
                     worker.process(job)
                     job.status = JobStatus.COMPLETED
-                    logger.info("Successfully completed job: ${job.id}")
+                    val duration = System.currentTimeMillis() - startTime
+                    logger.info("[${job.type}] Completed Job ${job.id} (${duration}ms)")
                 } else {
-                    logger.warn("No worker found for job: ${job.id}")
+                    logger.warn("[${job.type}] No worker found for job: ${job.id}")
                     job.status = JobStatus.FAILED
                 }
             } catch (e: Exception) {
-                logger.error("Error processing job: ${job.id}", e)
+                logger.error("[${job.type}] Error processing job: ${job.id}", e)
                 job.retryCount++
                 if (job.retryCount >= 3) {
                     job.status = JobStatus.FAILED
                 } else {
-                    job.status = JobStatus.RETRYING
+                    job.status = JobStatus.PENDING
+                    // Exponential backoff: 30s, 60s
+                    job.nextRetryAt = System.currentTimeMillis() + (30000L * job.retryCount)
                 }
             } finally {
                 job.updatedAt = System.currentTimeMillis()

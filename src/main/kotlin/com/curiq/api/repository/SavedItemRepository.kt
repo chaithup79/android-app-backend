@@ -13,6 +13,9 @@ interface SavedItemRepository : JpaRepository<SavedItem, Long> {
     fun findByUuidAndUserId(uuid: String, userId: Long): Optional<SavedItem>
     fun findByUrlHashAndUserId(urlHash: String, userId: Long): Optional<SavedItem>
 
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT s.category FROM SavedItem s WHERE s.userId = :userId AND s.deleted = false AND s.category IS NOT NULL AND s.category != ''")
+    fun findDistinctCategories(userId: Long): List<String>
+
     @org.springframework.data.jpa.repository.Query(
         value = """
             SELECT * FROM saved_items 

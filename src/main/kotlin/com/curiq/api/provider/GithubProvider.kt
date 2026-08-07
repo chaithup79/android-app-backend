@@ -51,7 +51,7 @@ class GithubProvider : SpecializedProvider {
                     
                     ProviderResult(
                         providerName = "GithubProvider",
-                        confidence = 100, // Native API is extremely confident
+                        source = ProviderSource.GITHUB_API, confidence = 100, // Native API is extremely confident
                         metadata = metadata,
                         durationMs = System.currentTimeMillis() - startTime
                     )

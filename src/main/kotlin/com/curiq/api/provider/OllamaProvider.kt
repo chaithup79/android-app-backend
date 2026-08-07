@@ -23,29 +23,27 @@ class OllamaProvider(
             "format" to "json"
         )
 
-        val response = webClient.post()
-            .uri("/api/generate")
-            .bodyValue(requestBody)
-            .retrieve()
-            .bodyToMono(Map::class.java)
-            .block()
+        val response = try {
+            webClient.post()
+                .uri("/api/generate")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(Map::class.java)
+                .timeout(java.time.Duration.ofSeconds(60))
+                .block()
+        } catch (e: Exception) {
+            // Re-throw to allow JobScheduler to handle RETRY
+            throw RuntimeException("Ollama connection/timeout error: ${e.message}", e)
+        }
 
         val jsonResponse = response?.get("response") as? String
-            ?: throw RuntimeException("Empty response from Ollama")
+            ?: throw IllegalArgumentException("Empty response from Ollama")
 
         return try {
             val cleanedJson = extractJson(jsonResponse)
             objectMapper.readValue(cleanedJson, AiProcessResponse::class.java)
         } catch (e: Exception) {
-            // Fallback if AI fails to return valid JSON
-            AiProcessResponse(
-                ai_summary = "Failed to parse summary.",
-                ai_category = "Other",
-                ai_confidence = 0,
-                tags = emptyList(),
-                readingTime = null,
-                difficulty = null
-            )
+            throw IllegalArgumentException("Unrecoverable error: Failed to parse Ollama JSON response", e)
         }
     }
 
@@ -65,6 +63,31 @@ class OllamaProvider(
 
         return response?.get("response") as? String
             ?: throw RuntimeException("Empty response from Ollama")
+    }
+
+    override fun chatStream(prompt: String): reactor.core.publisher.Flux<String> {
+        val requestBody = mapOf(
+            "model" to modelName,
+            "prompt" to prompt,
+            "stream" to true
+        )
+
+        return webClient.post()
+            .uri("/api/generate")
+            .bodyValue(requestBody)
+            .retrieve()
+            .bodyToFlux(Map::class.java)
+            .map { responseMap ->
+                val chunk = responseMap["response"] as? String ?: ""
+                val done = responseMap["done"] as? Boolean ?: false
+                
+                val map = mapOf("token" to chunk, "done" to done)
+                objectMapper.writeValueAsString(map)
+            }
+            .onErrorResume { e ->
+                val errorMap = mapOf("token" to "[ERROR] ${e.message}", "done" to true)
+                reactor.core.publisher.Flux.just(objectMapper.writeValueAsString(errorMap))
+            }
     }
 
     private fun extractJson(text: String): String {

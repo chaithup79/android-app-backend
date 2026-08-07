@@ -50,6 +50,15 @@ data class SavedItem(
     @Column(name = "source_domain")
     var sourceDomain: String? = null,
 
+    @Column
+    var author: String? = null,
+
+    @Column(name = "author_url")
+    var authorUrl: String? = null,
+
+    @Column(name = "author_avatar")
+    var authorAvatar: String? = null,
+
     @Column(name = "metadata_status", nullable = false)
     var metadataStatus: String = "READY",
 
@@ -81,6 +90,18 @@ data class SavedItem(
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "ai_metadata", columnDefinition = "jsonb")
     var aiMetadata: Map<String, Any>? = null,
+
+    @Column(name = "last_ai_attempt_at")
+    var lastAiAttemptAt: Long? = null,
+
+    @Column(name = "last_ai_error", columnDefinition = "TEXT")
+    var lastAiError: String? = null,
+
+    @Column(name = "ai_model", length = 100)
+    var aiModel: String? = null,
+
+    @Column(name = "ai_generated_at")
+    var aiGeneratedAt: Long? = null,
 
     @Column(nullable = false)
     var deleted: Boolean = false
