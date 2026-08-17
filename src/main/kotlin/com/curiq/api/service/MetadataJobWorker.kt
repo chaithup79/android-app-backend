@@ -33,6 +33,15 @@ class MetadataJobWorker(
         
         val enrichedItem = orchestrator.processMetadata(item)
         
+        logger.info("""
+            --- Final Extracted Metadata for ${enrichedItem.url} ---
+            Title: ${enrichedItem.title}
+            Author: ${enrichedItem.author}
+            Domain: ${enrichedItem.sourceDomain}
+            Summary: ${enrichedItem.summary?.take(50)?.plus("...")}
+            ------------------------------------------------
+        """.trimIndent())
+        
         var shouldEnqueueAi = false
         if (enrichedItem.summary != null || enrichedItem.imageUrl != null || enrichedItem.category != null || enrichedItem.faviconUrl != null || enrichedItem.sourceDomain != null) {
             enrichedItem.metadataStatus = "READY"

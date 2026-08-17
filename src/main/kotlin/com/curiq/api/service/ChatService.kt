@@ -34,10 +34,10 @@ class ChatService(
         
         val uniqueContextItems = mutableMapOf<Long, ChatContextItem>()
         
-        dbResults.forEach { item ->
+            dbResults.forEach { item ->
             uniqueContextItems[item.id!!] = ChatContextItem(
                 id = item.id!!,
-                title = item.title ?: item.sourceDomain,
+                title = listOf(item.title, item.author, item.sourceDomain).firstOrNull { !it.isNullOrBlank() } ?: "Saved Link",
                 summary = item.aiSummary ?: item.summary ?: "",
                 category = item.aiCategory ?: item.category,
                 tags = emptyList(), // Not passing tags for now
@@ -64,7 +64,7 @@ class ChatService(
             (recent + confident).distinctBy { it.id }.forEach { item ->
                 uniqueContextItems[item.id!!] = ChatContextItem(
                     id = item.id!!,
-                    title = item.title ?: item.sourceDomain,
+                    title = listOf(item.title, item.author, item.sourceDomain).firstOrNull { !it.isNullOrBlank() } ?: "Saved Link",
                     summary = item.aiSummary ?: item.summary ?: "",
                     category = item.aiCategory ?: item.category,
                     tags = emptyList(),

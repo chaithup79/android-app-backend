@@ -125,8 +125,8 @@ class AiJobWorker(
             - Lifestyle
             - Education
             
-            - Use one of the user's existing collections ONLY if it is an exact and natural match.
-            - If none of the existing collections fit, create a new, specific collection.
+            - EXTREMELY IMPORTANT: You MUST reuse one of the user's Existing Collections if the content fits into it, even broadly (e.g. put a travel photo into "Travel", do NOT create "Travel Photography").
+            - Only create a new collection if the content is completely unrelated to ALL Existing Collections.
             - Never force unrelated content into an existing collection.
             - Avoid categories that are too broad or too narrow.
             - Return only the collection name.

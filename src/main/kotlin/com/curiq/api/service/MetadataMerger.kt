@@ -65,12 +65,31 @@ class MetadataMerger {
                 domainConfidence = conf
             }
             if (meta.author != null && conf > authorConfidence) {
-                mergedAuthor = meta.author
-                authorConfidence = conf
+                // Reject generic platform names from being saved as the author
+                if (!meta.author.equals("Facebook", ignoreCase = true) && 
+                    !meta.author.equals("Instagram", ignoreCase = true)) {
+                    mergedAuthor = meta.author
+                    authorConfidence = conf
+                }
             }
             if (meta.title != null && conf > titleConfidence) {
                 mergedTitle = meta.title
                 titleConfidence = conf
+                
+                // Extract real username from Facebook titles (e.g., "John Doe on Reels | Facebook")
+                if (mergedAuthor == null || mergedAuthor.equals("Facebook", ignoreCase = true)) {
+                    val title = meta.title
+                    if (title.contains("| Facebook", ignoreCase = true) || title.contains("on Reels", ignoreCase = true)) {
+                        val extractedName = title.split("|").firstOrNull()
+                            ?.replace("on Reels", "", ignoreCase = true)
+                            ?.replace("Facebook", "", ignoreCase = true)
+                            ?.trim()
+                            
+                        if (!extractedName.isNullOrBlank() && extractedName.length < 50) {
+                            mergedAuthor = extractedName
+                        }
+                    }
+                }
             }
             if (meta.videoUrl != null && conf > videoConfidence) {
                 mergedVideoUrl = meta.videoUrl

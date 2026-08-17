@@ -33,6 +33,8 @@ services:
 
   ollama:
     image: ollama/ollama:latest
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
     ports:
       - "11434:11434"
     volumes:
