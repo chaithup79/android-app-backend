@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
+    implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("com.google.firebase:firebase-admin:9.2.0")
@@ -50,3 +52,4 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+

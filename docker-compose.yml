@@ -57,8 +57,11 @@ services:
       - DB_HOST=postgres
       - REDIS_HOST=redis
       - OLLAMA_URL=http://ollama:11434
+      - curiq.images.storage-path=/app/images
+      - curiq.images.base-url=https://curiq.in/images
     volumes:
       - /opt/curiq/secrets:/opt/curiq/secrets:ro
+      - /var/www/curiq-images:/app/images
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,8 +77,11 @@ services:
       - DB_HOST=postgres
       - REDIS_HOST=redis
       - OLLAMA_URL=http://ollama:11434
+      - curiq.images.storage-path=/app/images
+      - curiq.images.base-url=https://curiq.in/images
     volumes:
       - /opt/curiq/secrets:/opt/curiq/secrets:ro
+      - /var/www/curiq-images:/app/images
     depends_on:
       postgres:
         condition: service_healthy
@@ -86,3 +92,4 @@ volumes:
   postgres_data:
   redis_data:
   ollama_data:
+

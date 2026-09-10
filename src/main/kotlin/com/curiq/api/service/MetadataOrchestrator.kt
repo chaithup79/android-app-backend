@@ -13,7 +13,8 @@ import com.curiq.api.provider.GenericProvider
 class MetadataOrchestrator(
     private val specializedProviders: List<SpecializedProvider>,
     private val genericProviders: List<GenericProvider>,
-    private val metadataMerger: MetadataMerger
+    private val metadataMerger: MetadataMerger,
+    private val imageDownloaderService: ImageDownloaderService
 ) {
     private val logger = LoggerFactory.getLogger(MetadataOrchestrator::class.java)
     
@@ -53,7 +54,7 @@ class MetadataOrchestrator(
                     if (!result.metadata.summary.isNullOrBlank()) {
                         // We have a summary, we can stop here
                         item.summary = result.metadata.summary ?: item.summary
-                        item.imageUrl = result.metadata.imageUrl ?: item.imageUrl
+                        item.imageUrl = getPermanentUrl(result.metadata.imageUrl ?: item.imageUrl)
                         item.faviconUrl = result.metadata.faviconUrl ?: item.faviconUrl
                         item.sourceDomain = result.metadata.sourceDomain ?: item.sourceDomain
                         item.author = result.metadata.author ?: item.author
@@ -117,7 +118,7 @@ class MetadataOrchestrator(
         
         item.title = finalMetadata.title ?: item.title
         item.summary = finalMetadata.summary ?: item.summary
-        item.imageUrl = finalMetadata.imageUrl ?: item.imageUrl
+        item.imageUrl = getPermanentUrl(finalMetadata.imageUrl ?: item.imageUrl)
         item.faviconUrl = finalMetadata.faviconUrl ?: item.faviconUrl
         item.sourceDomain = finalMetadata.sourceDomain ?: item.sourceDomain
         item.author = finalMetadata.author ?: item.author
@@ -130,6 +131,21 @@ class MetadataOrchestrator(
         }
         
         return item
+    }
+
+    private fun getPermanentUrl(tempImageUrl: String?): String? {
+        if (tempImageUrl.isNullOrBlank()) return tempImageUrl
+        try {
+            val url = java.net.URI(tempImageUrl).toURL()
+            if (url.host != "curiq.in" && !url.host.endsWith(".curiq.in")) {
+                val filename = java.util.UUID.randomUUID().toString()
+                return imageDownloaderService.downloadAndCompressImage(tempImageUrl, filename) ?: tempImageUrl
+            }
+            return tempImageUrl
+        } catch (e: Exception) {
+            logger.warn("Failed to parse or download image URL: $tempImageUrl", e)
+            return tempImageUrl
+        }
     }
 
     private fun normalizeUrl(url: String): String {
