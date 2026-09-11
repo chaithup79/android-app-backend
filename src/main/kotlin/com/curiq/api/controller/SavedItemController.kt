@@ -12,6 +12,9 @@ import com.curiq.api.model.SyncResponse
 @RestController
 @RequestMapping("/api/v1")
 class SavedItemController(
+    private val userLimitService: com.curiq.api.service.UserLimitService,
+    private val userRepository: com.curiq.api.repository.UserRepository,
+
     private val repository: SavedItemRepository,
     private val currentUserService: CurrentUserService,
     private val jobService: com.curiq.api.service.JobService
@@ -25,6 +28,17 @@ class SavedItemController(
         val serverTime = System.currentTimeMillis()
         
         logger.info("Received sync request with ${request.changes.size} changes")
+
+        // Check limit for inserts
+        val hasNewItems = request.changes.any { !repository.findByUuid(it.uuid).isPresent }
+        if (hasNewItems) {
+            try {
+                val firebaseUid = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication.principal as String
+                userLimitService.checkSaveLimit(firebaseUid)
+            } catch (e: com.curiq.api.service.SaveLimitReachedException) {
+                throw e
+            }
+        }
 
         // 1. Process client changes
         for (clientItem in request.changes) {
@@ -95,3 +109,7 @@ class SavedItemController(
         return ResponseEntity.ok(SyncResponse(serverChanges, nextSyncToken, serverTime))
     }
 }
+
+
+
+

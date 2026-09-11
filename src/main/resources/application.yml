@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8088
 
 spring:
@@ -28,3 +28,7 @@ curiq:
 
 ollama:
   base-url: ${OLLAMA_URL:http://localhost:11434}
+
+revenuecat:
+  webhook:
+    secret: ${REVENUECAT_WEBHOOK_SECRET:curiq_rc_secret_replace_in_prod}

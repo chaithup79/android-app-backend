@@ -1,6 +1,7 @@
 package com.curiq.api.model
 
 import jakarta.persistence.*
+import java.time.LocalDate
 
 @Entity
 @Table(name = "users")
@@ -25,5 +26,17 @@ data class UserEntity(
     var createdAt: Long = System.currentTimeMillis(),
 
     @Column(name = "last_login_at", nullable = false)
-    var lastLoginAt: Long = System.currentTimeMillis()
+    var lastLoginAt: Long = System.currentTimeMillis(),
+
+    @Column(name = "subscription_status")
+    var subscriptionStatus: String = "FREE",
+
+    @Column(name = "subscription_expires_at")
+    var subscriptionExpiresAt: Long? = null,
+
+    @Column(name = "ai_query_count", nullable = false)
+    var aiQueryCount: Int = 0,
+
+    @Column(name = "last_ai_query_date")
+    var lastAiQueryDate: LocalDate? = null
 )
