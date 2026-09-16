@@ -19,12 +19,14 @@ class ChatController(
 ) {
 
     private fun consumeQuota() {
-        val firebaseUid = SecurityContextHolder.getContext().authentication.principal as String
+        val userContext = SecurityContextHolder.getContext().authentication.principal as com.curiq.api.model.UserContext
+        val firebaseUid = userContext.uid
         aiLimitService.consumeQuota(firebaseUid)
     }
 
     private fun refundQuota() {
-        val firebaseUid = SecurityContextHolder.getContext().authentication.principal as String
+        val userContext = SecurityContextHolder.getContext().authentication.principal as com.curiq.api.model.UserContext
+        val firebaseUid = userContext.uid
         aiLimitService.refundAiQuota(firebaseUid)
     }
 
@@ -48,13 +50,22 @@ class ChatController(
         @RequestBody request: ChatRequest
     ): reactor.core.publisher.Flux<String> {
         val userId = currentUserService.userId()
-        consumeQuota()
+        val userContext = SecurityContextHolder.getContext().authentication.principal as com.curiq.api.model.UserContext
+        val firebaseUid = userContext.uid
+        
+        try {
+            aiLimitService.consumeQuota(firebaseUid)
+        } catch (e: AiLimitReachedException) {
+            val errorMap = mapOf("token" to "You have reached your limit of 1 AI question for today. Please upgrade to Premium for unlimited questions.", "done" to true)
+            return reactor.core.publisher.Flux.just(com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(errorMap))
+        }
+
         try {
             return chatService.processChatStream(request, userId).doOnError {
-                refundQuota()
+                aiLimitService.refundAiQuota(firebaseUid)
             }
         } catch (e: Exception) {
-            refundQuota()
+            aiLimitService.refundAiQuota(firebaseUid)
             throw e
         }
     }

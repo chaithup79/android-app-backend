@@ -32,10 +32,14 @@ class UserLimitService(
         }
 
         val count = savedItemRepository.countByUserIdAndDeletedFalse(user.id!!)
-        if (count >= 5) {
-            throw SaveLimitReachedException("You've reached your 5 saved posts.")
+        if (count >= 3) {
+            throw SaveLimitReachedException("You've reached your 3 saved posts.")
         }
     }
 }
 
+@org.springframework.web.bind.annotation.ResponseStatus(org.springframework.http.HttpStatus.FORBIDDEN)
 class SaveLimitReachedException(message: String) : RuntimeException(message)
+
+
+

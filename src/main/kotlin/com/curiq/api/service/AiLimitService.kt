@@ -37,8 +37,8 @@ class AiLimitService(
             user.lastAiQueryDate = today
         }
 
-        if (user.aiQueryCount >= 3) {
-            throw AiLimitReachedException("You've used your 3 free Ask Curiq questions for today.", 3, user.aiQueryCount)
+        if (user.aiQueryCount >= 1) {
+            throw AiLimitReachedException("You've used your 1 free Ask Curiq question for today.", 1, user.aiQueryCount)
         }
 
         user.aiQueryCount += 1
