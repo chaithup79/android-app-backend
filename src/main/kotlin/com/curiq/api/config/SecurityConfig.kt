@@ -21,7 +21,7 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     // Public endpoints
-                    .requestMatchers("/api/v1/public/**").permitAll()
+                    .requestMatchers("/api/v1/public/**", "/api/webhooks/revenuecat").permitAll()
                     // Secured endpoints
                     .requestMatchers("/api/v1/**").authenticated()
                     // Allow Spring Boot error fallback (prevents 404s masking 401s)
